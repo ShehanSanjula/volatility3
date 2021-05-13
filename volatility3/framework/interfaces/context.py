@@ -11,11 +11,12 @@ convenience functions, most notably the object constructor function,
 `object`, which will construct a symbol on a layer at a particular
 offset.
 """
+import collections
 import copy
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Union
+from typing import Optional, Union, Dict, List
 
-from volatility3.framework import interfaces
+from volatility3.framework import interfaces, exceptions
 
 
 class ContextInterface(metaclass = ABCMeta):
@@ -117,7 +118,7 @@ class ContextInterface(metaclass = ABCMeta):
         """
 
 
-class ModuleInterface(metaclass = ABCMeta):
+class ModuleInterface(interfaces.configuration.ConfigurableInterface, metaclass = ABCMeta):
     """Maintains state concerning a particular loaded module in memory.
 
     This object is OS-independent.
@@ -125,32 +126,35 @@ class ModuleInterface(metaclass = ABCMeta):
 
     def __init__(self,
                  context: ContextInterface,
-                 module_name: str,
-                 layer_name: str,
-                 offset: int,
+                 config_path: str,
+                 name: str,
+                 layer_name: str = None,
+                 offset: int = None,
                  symbol_table_name: Optional[str] = None,
                  native_layer_name: Optional[str] = None) -> None:
         """Constructs a new os-independent module.
 
         Args:
             context: The context within which this module will exist
-            module_name: The name of the module
+            name: The name of the module
             layer_name: The layer within the context in which the module exists
             offset: The offset at which the module exists in the layer
             symbol_table_name: The name of an associated symbol table
             native_layer_name: The default native layer for objects constructed by the module
         """
         self._context = context
-        self._module_name = module_name
-        self._layer_name = layer_name
-        if not isinstance(offset, int):
-            raise TypeError(f"Module offset must be an int not {type(offset)}")
-        self._offset = offset
-        self._native_layer_name = None
-        if native_layer_name:
-            self._native_layer_name = native_layer_name
-        self.symbol_table_name = symbol_table_name or self._module_name
-        super().__init__()
+        super().__init__(context, config_path)
+
+        self._module_name = name or self.config['module_name']
+        self._layer_name = layer_name or self.config['layer_name']
+        self._offset = offset or self.config['offset']
+        self._native_layer_name = native_layer_name or self.config.get('native_layer_name', None)
+        self.symbol_table_name = symbol_table_name or self.config.get('symbol_table_name', None) or self._module_name
+
+    @classmethod
+    @abstractmethod
+    def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
+        return []
 
     @property
     def name(self) -> str:
@@ -210,21 +214,64 @@ class ModuleInterface(metaclass = ABCMeta):
         Returns:
             The constructed object
         """
+    def get_absolute_symbol_address(self, name: str) -> int:
+        """Returns the absolute address of the symbol within this module"""
+        symbol = self.get_symbol(name)
+        return self.offset + symbol.address
 
     def get_type(self, name: str) -> 'interfaces.objects.Template':
-        """Returns a type from the module."""
+        """Returns a type from the module's symbol table."""
 
     def get_symbol(self, name: str) -> 'interfaces.symbols.SymbolInterface':
-        """Returns a symbol from the module."""
+        """Returns a symbol object from the module's symbol table."""
 
     def get_enumeration(self, name: str) -> 'interfaces.objects.Template':
-        """Returns an enumeration from the module."""
+        """Returns an enumeration from the module's symbol table."""
 
     def has_type(self, name: str) -> bool:
-        """Determines whether a type is present in the module."""
+        """Determines whether a type is present in the module's symbol table."""
 
     def has_symbol(self, name: str) -> bool:
-        """Determines whether a symbol is present in the module."""
+        """Determines whether a symbol is present in the module's symbol table."""
 
     def has_enumeration(self, name: str) -> bool:
-        """Determines whether an enumeration is present in the module."""
+        """Determines whether an enumeration is present in the module's symbol table."""
+
+
+class ModuleContainer(collections.abc.Mapping):
+    """Container for multiple layers of data."""
+
+    def __init__(self, modules: Optional[List[ModuleInterface]] = None) -> None:
+        self._modules = {}  # type: Dict[str, ModuleInterface]
+        if modules is not None:
+            for module in modules:
+                self.add_module(module)
+
+    def __eq__(self, other):
+        return dict(self) == dict(other)
+
+    def add_module(self, module: ModuleInterface) -> None:
+        """Adds a module to the module collection
+
+        This will throw an exception if the required dependencies are not met
+
+        Args:
+            module: the module to add to the list of modules (based on module.name)
+        """
+        if module.name in self._modules:
+            raise exceptions.VolatilityException("Module already exists: {}".format(module.name))
+        self._modules[module.name] = module
+
+    def __delitem__(self, name: str) -> None:
+        """Removes a module from the module list"""
+        del self._modules[name]
+
+    def __getitem__(self, name: str) -> ModuleInterface:
+        """Returns the layer of specified name."""
+        return self._modules[name]
+
+    def __len__(self) -> int:
+        return len(self._modules)
+
+    def __iter__(self):
+        return iter(self._modules)
