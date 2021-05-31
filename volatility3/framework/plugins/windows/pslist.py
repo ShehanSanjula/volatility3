@@ -20,8 +20,8 @@ vollog = logging.getLogger(__name__)
 class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
     """Lists the processes present in a particular windows memory image."""
 
-    _required_framework_version = (1, 0, 0)
-    _version = (2, 0, 1)
+    _required_framework_version = (1, 2, 0)
+    _version = (2, 0, 0)
     PHYSICAL_DEFAULT = False
 
     @classmethod
@@ -100,7 +100,7 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
             if exclude:
                 filter_func = lambda x: x.UniqueProcessId in filter_list
             else:
-                filter_func = lambda x: x.UniqueProcessId not in filter_list
+            filter_func = lambda x: x.UniqueProcessId not in filter_list
         return filter_func
 
     @classmethod
@@ -110,6 +110,7 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
 
         Args:
             name_list: A list of process names that are acceptable, all other processes will be filtered out
+
             exclude: Accept only tasks that are not in name_list
         Returns:
             Filter function for passing to the `list_processes` method
@@ -122,7 +123,7 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
             if exclude:
                 filter_func = lambda x: utility.array_to_string(x.ImageFileName) in filter_list
             else:
-                filter_func = lambda x: utility.array_to_string(x.ImageFileName) not in filter_list
+            filter_func = lambda x: utility.array_to_string(x.ImageFileName) not in filter_list
         return filter_func
 
     @classmethod
