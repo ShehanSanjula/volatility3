@@ -33,9 +33,10 @@ class KernelModule(interfaces.automagic.AutomagicInterface):
 
         for req in requirement.requirements:
             if isinstance(requirement.requirements[req], configuration.requirements.TranslationLayerRequirement):
-                layer_pmo_config_path = interfaces.configuration.path_join(new_config_path, req, 'page_map_offset')
+                layer_kvo_config_path = interfaces.configuration.path_join(new_config_path, req,
+                                                                           'kernel_virtual_offset')
                 offset_config_path = interfaces.configuration.path_join(new_config_path, 'offset')
-                offset = context.config[layer_pmo_config_path]
+                offset = context.config[layer_kvo_config_path]
                 context.config[offset_config_path] = offset
 
         # Now construct the module based on the sub-requirements
