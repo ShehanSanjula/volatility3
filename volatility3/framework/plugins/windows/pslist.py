@@ -177,13 +177,13 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
                                                                 "pe",
                                                                 class_types = pe.class_types)
 
-        memory = self.context.layers[self.config['primary']]
+        memory = self.context.layers[self.config['kernel.layer_name']]
         if not isinstance(memory, layers.intel.Intel):
             raise TypeError("Primary layer is not an intel layer")
 
         for proc in self.list_processes(self.context,
-                                        self.config['primary'],
-                                        self.config['nt_symbols'],
+                                        self.config['kernel.layer_name'],
+                                        self.config['kernel.symbol_table_name'],
                                         filter_func = self.create_pid_filter(self.config.get('pid', None))):
 
             if not self.config.get('physical', self.PHYSICAL_DEFAULT):
@@ -195,7 +195,8 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
 
             try:
                 if self.config['dump']:
-                    file_handle = self.process_dump(self.context, self.config['nt_symbols'], pe_table_name, proc,
+                    file_handle = self.process_dump(self.context, self.config['kernel.symbol_table_name'],
+                                                    pe_table_name, proc,
                                                     self.open)
                     file_output = "Error outputting file"
                     if file_handle:

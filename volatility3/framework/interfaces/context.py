@@ -118,7 +118,7 @@ class ContextInterface(metaclass = ABCMeta):
         """
 
 
-class ModuleInterface(interfaces.configuration.ConfigurableInterface, metaclass = ABCMeta):
+class ModuleInterface(metaclass = ABCMeta):
     """Maintains state concerning a particular loaded module in memory.
 
     This object is OS-independent.
@@ -126,10 +126,9 @@ class ModuleInterface(interfaces.configuration.ConfigurableInterface, metaclass 
 
     def __init__(self,
                  context: ContextInterface,
-                 config_path: str,
-                 name: str,
-                 layer_name: str = None,
-                 offset: int = None,
+                 module_name: str,
+                 layer_name: str,
+                 offset: int,
                  symbol_table_name: Optional[str] = None,
                  native_layer_name: Optional[str] = None) -> None:
         """Constructs a new os-independent module.
@@ -143,18 +142,11 @@ class ModuleInterface(interfaces.configuration.ConfigurableInterface, metaclass 
             native_layer_name: The default native layer for objects constructed by the module
         """
         self._context = context
-        super().__init__(context, config_path)
-
-        self._module_name = name or self.config['module_name']
-        self._layer_name = layer_name or self.config['layer_name']
-        self._offset = offset or self.config['offset']
-        self._native_layer_name = native_layer_name or self.config.get('native_layer_name', None)
-        self.symbol_table_name = symbol_table_name or self.config.get('symbol_table_name', None) or self._module_name
-
-    @classmethod
-    @abstractmethod
-    def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
-        return []
+        self._module_name = module_name
+        self._layer_name = layer_name
+        self._offset = offset
+        self._native_layer_name = native_layer_name or layer_name
+        self.symbol_table_name = symbol_table_name or self._module_name
 
     @property
     def name(self) -> str:

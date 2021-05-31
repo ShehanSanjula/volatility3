@@ -21,7 +21,8 @@ from volatility3.framework.configuration import requirements
 
 vollog = logging.getLogger(__name__)
 
-windows_automagic = ['ConstructionMagic', 'LayerStacker', 'WintelHelper', 'KernelPDBScanner', 'WinSwapLayers']
+windows_automagic = ['ConstructionMagic', 'LayerStacker', 'WintelHelper', 'KernelPDBScanner', 'WinSwapLayers',
+                     'KernelModule']
 
 linux_automagic = ['ConstructionMagic', 'LayerStacker', 'LinuxBannerCache', 'LinuxSymbolFinder']
 
@@ -44,7 +45,7 @@ def available(context: interfaces.context.ContextInterface) -> List[interfaces.a
         clazz(context, interfaces.configuration.path_join(config_path, clazz.__name__))
         for clazz in class_subclasses(interfaces.automagic.AutomagicInterface)
     ],
-                  key = lambda x: x.priority)
+        key = lambda x: x.priority)
 
 
 def choose_automagic(

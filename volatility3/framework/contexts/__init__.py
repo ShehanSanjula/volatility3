@@ -14,10 +14,10 @@ import logging
 from typing import Callable, Iterable, List, Optional, Set, Tuple, Union
 
 from volatility3.framework import constants, interfaces, symbols, exceptions
-from volatility3.framework.configuration import requirements
 from volatility3.framework.objects import templates
 
 vollog = logging.getLogger(__name__)
+
 
 class Context(interfaces.context.ContextInterface):
     """Maintains the context within which to construct objects.
@@ -70,6 +70,18 @@ class Context(interfaces.context.ContextInterface):
         """A LayerContainer object, allowing access to all data and translation
         layers currently available within the context."""
         return self._memory
+
+    def add_module(self, module: interfaces.context.ModuleInterface) -> None:
+        """Adds a named module to the context.
+
+        Args:
+            module: The module to be added to the module object collection
+
+        Raises:
+            volatility3.framework.exceptions.VolatilityException: if the module is already present, or has
+                unmet dependencies
+        """
+        self._module_space.add_module(module)
 
     # ## Translation Layer Functions
 
@@ -351,20 +363,11 @@ class ModuleCollection(interfaces.context.ModuleContainer):
             raise ValueError("Size must be strictly non-negative")
         for module in self._modules:
             if isinstance(module, SizedModule):
-            if (offset <= module.offset + module.size) and (offset + size >= module.offset):
-                yield (module.name, module.get_symbols_by_absolute_location(offset, size))
-class ConfigurableModule(interfaces.context.ModuleInterface,
-                         interfaces.configuration.ConfigurableInterface):
+                if (offset <= module.offset + module.size) and (offset + size >= module.offset):
+                    yield (module.name, module.get_symbols_by_absolute_location(offset, size))
 
-    @classmethod
-    def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
-        return [
-            requirements.TranslationLayerRequirement(name = 'layer_name', architectures = ["Intel32", "Intel64"]),
-            requirements.IntRequirement(name = 'offset'),
-            requirements.SymbolTableRequirement(name = 'symbol_table_name'),
-            requirements.TranslationLayerRequirement(name = 'layer_name', architectures = ["Intel32", "Intel64"],
-                                                     optional = True),
-        ]
+
+class ConfigurableModule(Module, interfaces.configuration.ConfigurableInterface):
 
     def __init__(self,
                  context: interfaces.context.ContextInterface,
@@ -372,7 +375,7 @@ class ConfigurableModule(interfaces.context.ModuleInterface,
                  name: str) -> None:
         interfaces.configuration.ConfigurableInterface.__init__(self, context, config_path)
         layer_name = self.config['layer_name']
-        offset = self.config['module_offset']
+        offset = self.config['offset']
         symbol_table_name = self.config['symbol_table_name']
-        interfaces.context.ModuleInterface.__init__(self, context, name, layer_name, offset, symbol_table_name,
-                                                    layer_name)
+        interfaces.configuration.ConfigurableInterface.__init__(self, context, config_path)
+        Module.__init__(self, context, name, layer_name, offset, symbol_table_name, layer_name)
