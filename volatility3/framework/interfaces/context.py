@@ -253,7 +253,7 @@ class ModuleContainer(collections.abc.Mapping):
     """Container for multiple layers of data."""
 
     def __init__(self, modules: Optional[List[ModuleInterface]] = None) -> None:
-        self._modules = {}  # type: Dict[str, ModuleInterface]
+        self._modules: Dict[str, ModuleInterface] = {}
         if modules is not None:
             for module in modules:
                 self.add_module(module)

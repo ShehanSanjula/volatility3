@@ -74,7 +74,8 @@ class Memmap(interfaces.plugins.PluginInterface):
         filter_func = pslist.PsList.create_pid_filter([self.config.get('pid', None)])
 
         return renderers.TreeGrid([("Virtual", format_hints.Hex), ("Physical", format_hints.Hex),
-                                   ("Size", format_hints.Hex), ("Offset in File", format_hints.Hex), ("File output", str)],
+                                   ("Size", format_hints.Hex), ("Offset in File", format_hints.Hex),
+                                   ("File output", str)],
                                   self._generator(
                                       pslist.PsList.list_processes(context = self.context,
                                                                    layer_name = self.config['primary'],

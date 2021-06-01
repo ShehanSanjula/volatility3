@@ -227,6 +227,7 @@ class JarHandler(VolatilityHandler):
     Actual reference (found from https://www.w3.org/wiki/UriSchemes/jar) seemed not to return:
     http://developer.java.sun.com/developer/onlineTraining/protocolhandlers/
     """
+
     @classmethod
     def non_cached_schemes(cls) -> List[str]:
         return ['jar']

@@ -65,7 +65,7 @@ class SymbolSpace(interfaces.symbols.SymbolSpaceInterface):
 
     def get_symbols_by_location(self, offset: int, size: int = 0, table_name: str = None) -> Iterable[str]:
         """Returns all symbols that exist at a specific relative address."""
-        table_list = self._dict.values()  # type: Iterable[interfaces.symbols.BaseSymbolTableInterface]
+        table_list: Iterable[interfaces.symbols.BaseSymbolTableInterface] = self._dict.values()
         if table_name is not None:
             if table_name in self._dict:
                 table_list = [self._dict[table_name]]
@@ -178,7 +178,7 @@ class SymbolSpace(interfaces.symbols.SymbolSpaceInterface):
         """
         # Traverse down any resolutions
         if type_name not in self._resolved:
-            self._resolved[type_name] = self._weak_resolve(SymbolType.TYPE, type_name)  # type: ignore
+            self._resolved[type_name] = self._weak_resolve(SymbolType.TYPE, type_name)
             self._iterative_resolve([type_name])
         if isinstance(self._resolved[type_name], objects.templates.ReferenceTemplate):
             table_name = None

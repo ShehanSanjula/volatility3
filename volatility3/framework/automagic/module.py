@@ -21,8 +21,8 @@ class KernelModule(interfaces.automagic.AutomagicInterface):
             return
         # The requirement is unfulfilled and is a ModuleRequirement
 
-        context.config[interfaces.configuration.path_join(new_config_path,
-                                                          'class')] = 'volatility3.framework.contexts.ConfigurableModule'
+        context.config[interfaces.configuration.path_join(
+            new_config_path, 'class')] = 'volatility3.framework.contexts.ConfigurableModule'
 
         for req in requirement.requirements:
             if requirement.requirements[req].unsatisfied(context, new_config_path) and req != 'offset':

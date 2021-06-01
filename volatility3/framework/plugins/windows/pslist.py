@@ -27,8 +27,7 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
     @classmethod
     def get_requirements(cls):
         return [
-            requirements.ModuleRequirement(name = 'kernel',
-                                           description = 'Windows kernel'),
+            requirements.ModuleRequirement(name = 'kernel', description = 'Windows kernel'),
             requirements.BooleanRequirement(name = 'physical',
                                             description = 'Display physical offsets instead of virtual',
                                             default = cls.PHYSICAL_DEFAULT,
@@ -197,18 +196,18 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
             try:
                 if self.config['dump']:
                     file_handle = self.process_dump(self.context, self.config['kernel.symbol_table_name'],
-                                                    pe_table_name, proc,
-                                                    self.open)
+                                                    pe_table_name, proc, self.open)
                     file_output = "Error outputting file"
                     if file_handle:
                         file_handle.close()
                         file_output = str(file_handle.preferred_filename)
 
                 yield (0, (proc.UniqueProcessId, proc.InheritedFromUniqueProcessId,
-                           proc.ImageFileName.cast("string", max_length = proc.ImageFileName.vol.count,
-                                                   errors = 'replace'),
-                   format_hints.Hex(offset), proc.ActiveThreads, proc.get_handle_count(), proc.get_session_id(),
-                   proc.get_is_wow64(), proc.get_create_time(), proc.get_exit_time(), file_output))
+                           proc.ImageFileName.cast("string",
+                                                   max_length = proc.ImageFileName.vol.count,
+                                                   errors = 'replace'), format_hints.Hex(offset), proc.ActiveThreads,
+                           proc.get_handle_count(), proc.get_session_id(), proc.get_is_wow64(), proc.get_create_time(),
+                           proc.get_exit_time(), file_output))
 
             except exceptions.InvalidAddressException:
                 vollog.info(f"Invalid process found at address: {proc.vol.offset:x}. Skipping")  

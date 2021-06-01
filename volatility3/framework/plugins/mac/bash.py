@@ -102,7 +102,9 @@ class Bash(plugins.PluginInterface, timeliner.TimeLinerInterface):
         list_tasks = pslist.PsList.get_list_tasks(self.config.get('pslist_method', pslist.PsList.pslist_methods[0]))
 
         for row in self._generator(
-                list_tasks(self.context, self.config['darwin.layer_name'], self.config['darwin.symbol_table_name'],
+                list_tasks(self.context,
+                           self.config['darwin.layer_name'],
+                           self.config['darwin.symbol_table_name'],
                            filter_func = filter_func)):
             _depth, row_data = row
             description = f"{row_data[0]} ({row_data[1]}): \"{row_data[3]}\""

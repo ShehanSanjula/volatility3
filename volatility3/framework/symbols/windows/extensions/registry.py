@@ -30,9 +30,10 @@ class RegValueTypes(enum.Enum):
     REG_QWORD = 11
     REG_UNKNOWN = 99999
 
+
     @classmethod
     def _missing_(cls, value):
-        return cls(RegValueTypes.REG_UNKNOWN)
+            return cls(RegValueTypes.REG_UNKNOWN)
 
 
 class RegKeyFlags(enum.IntEnum):

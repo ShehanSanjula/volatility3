@@ -13,10 +13,10 @@ import zipfile
 from abc import ABCMeta
 from typing import Any, Dict, Generator, Iterable, List, Optional, Type, Tuple, Mapping
 
-from volatility3.framework.layers import resources
 from volatility3 import schemas, symbols
 from volatility3.framework import class_subclasses, constants, exceptions, interfaces, objects
 from volatility3.framework.configuration import requirements
+from volatility3.framework.layers import resources
 from volatility3.framework.symbols import native, metadata
 
 vollog = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ class IntermediateSymbolTable(interfaces.symbols.SymbolTableInterface):
         self._versions = dict([(x.version, x) for x in class_subclasses(ISFormatTable)])
         fp = resources.ResourceAccessor().open(isf_url)
         reader = codecs.getreader("utf-8")
-        json_object = json.load(reader(fp))  # type: ignore
+        json_object = json.load(reader(fp))
         fp.close()
 
         # Validation is expensive, but we cache to store the hashes of successfully validated json objects
@@ -135,6 +135,11 @@ class IntermediateSymbolTable(interfaces.symbols.SymbolTableInterface):
 
         # Since we've been created with parameters, ensure our config is populated likewise
         self.config['isf_url'] = isf_url
+
+        if symbol_shift:
+            vollog.warning(
+                "Symbol_shift support has been deprecated and will be removed in the next major release of Volatility 3"
+            )
         self.config['symbol_shift'] = symbol_shift
         self.config['symbol_mask'] = symbol_mask
 

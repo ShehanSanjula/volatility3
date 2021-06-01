@@ -43,6 +43,7 @@ class RegExScanner(layers.ScannerInterface):
             if offset < self.chunk_size:
                 yield offset + data_offset
 
+
 class MultiStringScanner(layers.ScannerInterface):
     thread_safe = True
 

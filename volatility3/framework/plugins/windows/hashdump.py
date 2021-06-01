@@ -213,9 +213,11 @@ class Hashdump(interfaces.plugins.PluginInterface):
     @classmethod
     def sidbytes_to_key(cls, s: bytes) -> bytes:
         """Builds final DES key from the strings generated in sid_to_key"""
-        key = [s[0] >> 1, ((s[0] & 0x01) << 6) | (s[1] >> 2), ((s[1] & 0x03) << 5) | (s[2] >> 3),
-               ((s[2] & 0x07) << 4) | (s[3] >> 4), ((s[3] & 0x0F) << 3) | (s[4] >> 5),
-               ((s[4] & 0x1F) << 2) | (s[5] >> 6), ((s[5] & 0x3F) << 1) | (s[6] >> 7), s[6] & 0x7F]
+        key = [
+            s[0] >> 1, ((s[0] & 0x01) << 6) | (s[1] >> 2), ((s[1] & 0x03) << 5) | (s[2] >> 3),
+            ((s[2] & 0x07) << 4) | (s[3] >> 4), ((s[3] & 0x0F) << 3) | (s[4] >> 5), ((s[4] & 0x1F) << 2) | (s[5] >> 6),
+            ((s[5] & 0x3F) << 1) | (s[6] >> 7), s[6] & 0x7F
+        ]
         for i in range(8):
             key[i] = (key[i] << 1)
             key[i] = cls.odd_parity[key[i]]

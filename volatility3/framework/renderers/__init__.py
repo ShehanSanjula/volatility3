@@ -56,7 +56,7 @@ class TreeNode(interfaces.renderers.TreeNode):
         self._parent = parent
         self._path = path
         self._validate_values(values)
-        self._values = treegrid.RowStructure(*values)  # type: ignore
+        self._values = treegrid.RowStructure(*values)
 
     def __repr__(self) -> str:
         return f"<TreeNode [{self.path}] - {self._values}>"

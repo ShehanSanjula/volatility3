@@ -343,10 +343,7 @@ class ModuleCollection(interfaces.context.ModuleContainer):
 
 class ConfigurableModule(Module, interfaces.configuration.ConfigurableInterface):
 
-    def __init__(self,
-                 context: interfaces.context.ContextInterface,
-                 config_path: str,
-                 name: str) -> None:
+    def __init__(self, context: interfaces.context.ContextInterface, config_path: str, name: str) -> None:
         interfaces.configuration.ConfigurableInterface.__init__(self, context, config_path)
         layer_name = self.config['layer_name']
         offset = self.config['offset']
