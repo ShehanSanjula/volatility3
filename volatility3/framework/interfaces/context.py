@@ -270,7 +270,7 @@ class ModuleContainer(collections.abc.Mapping):
             module: the module to add to the list of modules (based on module.name)
         """
         if module.name in self._modules:
-            raise exceptions.VolatilityException("Module already exists: {}".format(module.name))
+            raise exceptions.VolatilityException(f"Module already exists: {module.name}")
         self._modules[module.name] = module
 
     def __delitem__(self, name: str) -> None:

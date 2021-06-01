@@ -7,6 +7,7 @@ import gettext
 import re
 from typing import List, Optional, Sequence, Any, Union
 
+
 # This effectively overrides/monkeypatches the core argparse module to provide more helpful output around choices
 # We shouldn't really steal a private member from argparse, but otherwise we're just duplicating code
 
@@ -21,7 +22,7 @@ class HelpfulSubparserAction(argparse._SubParsersAction):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         # We don't want the action self-check to kick in, so we remove the choices list, the check happens in __call__
-        self.choices = None
+        self.choices = None # type: ignore
 
     def __call__(self,
                  parser: argparse.ArgumentParser,
@@ -30,7 +31,7 @@ class HelpfulSubparserAction(argparse._SubParsersAction):
                  option_string: Optional[str] = None) -> None:
 
         parser_name = ''
-        arg_strings: List[str] = []
+        arg_strings = []  # type: List[str]
         if values is not None:
             for value in values:
                 if not parser_name:

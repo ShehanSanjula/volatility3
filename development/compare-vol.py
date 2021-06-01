@@ -63,8 +63,8 @@ class VolatilityTest:
             f.write(completed.stdout)
         if completed.stderr:
             with open(
-                    os.path.join(self.output_directory, '{}_{}_{}_stderr'.format(self.short_name, plugin.name,
-                                                                                 image_hash)), "wb") as f:
+                    os.path.join(self.output_directory, f'{self.short_name}_{plugin.name}_{image_hash}_stderr'),
+                    "wb") as f:
                 f.write(completed.stderr)
         return [total_time]
 
@@ -126,13 +126,13 @@ class Volatility3Test(VolatilityTest):
 
     def plugin_cmd(self, plugin: VolatilityPlugin, image: VolatilityImage) -> List[str]:
         return [
-            "python",
-            "-u",
-            "vol.py",
-            "-q",
-            "-f",
-            image.filepath,
-        ] + plugin.vol3_plugin_parameters + image.vol3_plugin_parameters.get(plugin.name, [])
+                   "python",
+                   "-u",
+                   "vol.py",
+                   "-q",
+                   "-f",
+                   image.filepath,
+               ] + plugin.vol3_plugin_parameters + image.vol3_plugin_parameters.get(plugin.name, [])
 
 
 class Volatility3PyPyTest(VolatilityTest):
@@ -141,13 +141,13 @@ class Volatility3PyPyTest(VolatilityTest):
 
     def plugin_cmd(self, plugin: VolatilityPlugin, image: VolatilityImage) -> List[str]:
         return [
-            "pypy3",
-            "-u",
-            "vol.py",
-            "-q",
-            "-f",
-            image.filepath,
-        ] + plugin.vol3_plugin_parameters + image.vol3_plugin_parameters.get(plugin.name, [])
+                   "pypy3",
+                   "-u",
+                   "vol.py",
+                   "-q",
+                   "-f",
+                   image.filepath,
+               ] + plugin.vol3_plugin_parameters + image.vol3_plugin_parameters.get(plugin.name, [])
 
 
 class VolatilityTester:

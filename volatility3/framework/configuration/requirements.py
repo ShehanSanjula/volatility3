@@ -454,7 +454,7 @@ class ModuleRequirement(interfaces.configuration.ConstructableRequirementInterfa
         value = self.config_value(context, config_path, None)
         if isinstance(value, str):
             if value not in context.modules:
-                vollog.log(constants.LOGLEVEL_V, "IndexError - Module not found in context: {}".format(value))
+                vollog.log(constants.LOGLEVEL_V, f"IndexError - Module not found in context: {value}")
                 return {config_path: self}
             return {}
 
@@ -466,7 +466,7 @@ class ModuleRequirement(interfaces.configuration.ConstructableRequirementInterfa
         ### NOTE: This validate method has side effects (the dependencies can change)!!!
 
         self._validate_class(context, interfaces.configuration.parent_path(config_path))
-        vollog.log(constants.LOGLEVEL_V, "IndexError - No configuration provided: {}".format(config_path))
+        vollog.log(constants.LOGLEVEL_V, f"IndexError - No configuration provided: {config_path}")
         return {config_path: self}
 
     def construct(self, context: interfaces.context.ContextInterface, config_path: str) -> None:
