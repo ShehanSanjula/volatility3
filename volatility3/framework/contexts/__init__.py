@@ -71,32 +71,6 @@ class Context(interfaces.context.ContextInterface):
         layers currently available within the context."""
         return self._memory
 
-    def add_module(self, module: interfaces.context.ModuleInterface) -> None:
-        """Adds a named module to the context.
-
-        Args:
-            module: The module to be added to the module object collection
-
-        Raises:
-            volatility3.framework.exceptions.VolatilityException: if the module is already present, or has
-                unmet dependencies
-        """
-        self._module_space.add_module(module)
-
-    # ## Translation Layer Functions
-
-    def add_layer(self, layer: interfaces.layers.DataLayerInterface) -> None:
-        """Adds a named translation layer to the context.
-
-        Args:
-            layer: The layer to be added to the memory
-
-        Raises:
-            volatility3.framework.exceptions.LayerException: if the layer is already present, or has
-                unmet dependencies
-        """
-        self._memory.add_layer(layer)
-
     # ## Object Factory Functions
 
     def object(self,
