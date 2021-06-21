@@ -22,10 +22,7 @@ class Elfs(plugins.PluginInterface):
     @classmethod
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
         return [
-            requirements.TranslationLayerRequirement(name = 'primary',
-                                                     description = 'Memory layer for the kernel',
-                                                     architectures = ["Intel32", "Intel64"]),
-            requirements.SymbolTableRequirement(name = "vmlinux", description = "Linux kernel symbols"),
+            requirements.ModuleRequirement(name = 'vmlinux', architectures = ["Intel32", "Intel64"]),
             requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (1, 0, 0)),
             requirements.ListRequirement(name = 'pid',
                                          description = 'Filter on specific process IDs',
@@ -59,6 +56,6 @@ class Elfs(plugins.PluginInterface):
                                    ("End", format_hints.Hex), ("File Path", str)],
                                   self._generator(
                                       pslist.PsList.list_tasks(self.context,
-                                                               self.config['primary'],
-                                                               self.config['vmlinux'],
+                                                               self.config['vmlinux.layer_name'],
+                                                               self.config['vmlinux.symbol_table_name'],
                                                                filter_func = filter_func)))

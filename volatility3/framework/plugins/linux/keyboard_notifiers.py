@@ -4,7 +4,7 @@
 
 import logging
 
-from volatility3.framework import interfaces, renderers, contexts, exceptions
+from volatility3.framework import interfaces, renderers, exceptions
 from volatility3.framework.configuration import requirements
 from volatility3.framework.renderers import format_hints
 from volatility3.framework.symbols import linux
@@ -21,21 +21,18 @@ class Keyboard_notifiers(interfaces.plugins.PluginInterface):
     @classmethod
     def get_requirements(cls):
         return [
-            requirements.TranslationLayerRequirement(name = 'primary',
-                                                     description = 'Memory layer for the kernel',
-                                                     architectures = ["Intel32", "Intel64"]),
-            requirements.SymbolTableRequirement(name = "vmlinux", description = "Linux kernel symbols"),
+            requirements.ModuleRequirement(name = 'vmlinux', architectures = ["Intel32", "Intel64"]),
             requirements.PluginRequirement(name = 'lsmod', plugin = lsmod.Lsmod, version = (1, 0, 0)),
             requirements.VersionRequirement(name = 'linuxutils', component = linux.LinuxUtilities, version = (1, 0, 0))
         ]
 
     def _generator(self):
-        vmlinux = contexts.Module(self.context, self.config['vmlinux'], self.config['primary'], 0)
+        vmlinux = self.context.modules[self.config['vmlinux']]
 
-        modules = lsmod.Lsmod.list_modules(self.context, self.config['primary'], self.config['vmlinux'])
+        modules = lsmod.Lsmod.list_modules(self.context, vmlinux.layer_name, vmlinux.symbol_table_name)
 
-        handlers = linux.LinuxUtilities.generate_kernel_handler_info(self.context, self.config['primary'],
-                                                                     self.config['vmlinux'], modules)
+        handlers = linux.LinuxUtilities.generate_kernel_handler_info(self.context, vmlinux.layer_name,
+                                                                     vmlinux.symbol_table_name, modules)
 
         try:
             knl_addr = vmlinux.object_from_symbol("keyboard_notifier_list")

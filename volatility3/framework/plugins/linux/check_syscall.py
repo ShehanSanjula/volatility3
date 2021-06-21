@@ -6,7 +6,7 @@ found in Linux's /proc file system."""
 import logging
 from typing import List
 
-from volatility3.framework import exceptions, interfaces, contexts
+from volatility3.framework import exceptions, interfaces
 from volatility3.framework import renderers, constants
 from volatility3.framework.configuration import requirements
 from volatility3.framework.interfaces import plugins
@@ -30,17 +30,14 @@ class Check_syscall(plugins.PluginInterface):
     @classmethod
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
         return [
-            requirements.TranslationLayerRequirement(name = 'primary',
-                                                     description = 'Memory layer for the kernel',
-                                                     architectures = ["Intel32", "Intel64"]),
-            requirements.SymbolTableRequirement(name = "vmlinux", description = "Linux kernel symbols")
+            requirements.ModuleRequirement(name = 'vmlinux', architectures = ["Intel32", "Intel64"]),
         ]
 
     def _get_table_size_next_symbol(self, table_addr, ptr_sz, vmlinux):
         """Returns the size of the table based on the next symbol."""
         ret = 0
 
-        sym_table = self.context.symbol_space[vmlinux.name]
+        sym_table = self.context.symbol_space[vmlinux.symbol_table_name]
 
         sorted_symbols = sorted([(sym_table.get_symbol(sn).address, sn) for sn in sym_table.symbols])
 
@@ -62,7 +59,8 @@ class Check_syscall(plugins.PluginInterface):
         accurate."""
 
         return len(
-            [sym for sym in self.context.symbol_space[vmlinux.name].symbols if sym.startswith("__syscall_meta__")])
+            [sym for sym in self.context.symbol_space[vmlinux.symbol_table_name].symbols if
+             sym.startswith("__syscall_meta__")])
 
     def _get_table_info_other(self, table_addr, ptr_sz, vmlinux):
         table_size_meta = self._get_table_size_meta(vmlinux)
@@ -93,12 +91,13 @@ class Check_syscall(plugins.PluginInterface):
         md = capstone.Cs(capstone.CS_ARCH_X86, mode)
 
         try:
-            func_addr = self.context.symbol_space.get_symbol(vmlinux.name + constants.BANG + syscall_entry_func).address
+            func_addr = self.context.symbol_space.get_symbol(
+                vmlinux.symbol_table_name + constants.BANG + syscall_entry_func).address
         except exceptions.SymbolError as e:
             # if we can't find the disassemble function then bail and rely on a different method
             return 0
 
-        data = self.context.layers.read(self.config['primary'], func_addr, 6)
+        data = self.context.layers.read(self.config['vmlinux.layer_name'], func_addr, 6)
 
         for (address, size, mnemonic, op_str) in md.disasm_lite(data, func_addr):
             if mnemonic == 'CMP':
@@ -108,7 +107,7 @@ class Check_syscall(plugins.PluginInterface):
         return table_size
 
     def _get_table_info(self, vmlinux, table_name, ptr_sz):
-        table_sym = self.context.symbol_space.get_symbol(vmlinux.name + constants.BANG + table_name)
+        table_sym = self.context.symbol_space.get_symbol(vmlinux.symbol_table_name + constants.BANG + table_name)
 
         table_size = self._get_table_info_disassembly(ptr_sz, vmlinux)
 
@@ -123,7 +122,7 @@ class Check_syscall(plugins.PluginInterface):
 
     # TODO - add finding and parsing unistd.h once cached file enumeration is added
     def _generator(self):
-        vmlinux = contexts.Module(self.context, self.config['vmlinux'], self.config['primary'], 0)
+        vmlinux = self.context.modules[self.config['vmlinux']]
 
         ptr_sz = vmlinux.get_type("pointer").size
         if ptr_sz == 4:
@@ -143,7 +142,8 @@ class Check_syscall(plugins.PluginInterface):
         # enabled in order to support 32 bit programs and libraries
         # if the symbol isn't there then the support isn't in the kernel and so we skip it
         try:
-            ia32_symbol = self.context.symbol_space.get_symbol(vmlinux.name + constants.BANG + "ia32_sys_call_table")
+            ia32_symbol = self.context.symbol_space.get_symbol(
+                vmlinux.symbol_table_name + constants.BANG + "ia32_sys_call_table")
         except exceptions.SymbolError:
             ia32_symbol = None
 

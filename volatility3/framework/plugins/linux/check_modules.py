@@ -5,7 +5,7 @@
 import logging
 from typing import List
 
-from volatility3.framework import interfaces, renderers, exceptions, constants, contexts
+from volatility3.framework import interfaces, renderers, exceptions, constants
 from volatility3.framework.configuration import requirements
 from volatility3.framework.interfaces import plugins
 from volatility3.framework.objects import utility
@@ -23,10 +23,7 @@ class Check_modules(plugins.PluginInterface):
     @classmethod
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
         return [
-            requirements.TranslationLayerRequirement(name = 'primary',
-                                                     description = 'Memory layer for the kernel',
-                                                     architectures = ["Intel32", "Intel64"]),
-            requirements.SymbolTableRequirement(name = "vmlinux", description = "Linux kernel symbols"),
+            requirements.ModuleRequirement(name = 'vmlinux', architectures = ["Intel32", "Intel64"]),
             requirements.PluginRequirement(name = 'lsmod', plugin = lsmod.Lsmod, version = (1, 0, 0))
         ]
 
@@ -44,10 +41,9 @@ class Check_modules(plugins.PluginInterface):
 
         ret = {}
 
-        kobj_off = self.context.symbol_space.get_type(self.config['vmlinux'] + constants.BANG +
-                                                      'module_kobject').relative_child_offset('kobj')
+        kobj_off = vmlinux.get_type('module_kobject').relative_child_offset('kobj')
 
-        for kobj in module_kset.list.to_list(vmlinux.name + constants.BANG + "kobject", "entry"):
+        for kobj in module_kset.list.to_list(vmlinux.symbol_table_name + constants.BANG + "kobject", "entry"):
 
             mod_kobj = vmlinux.object(object_type = "module_kobject", offset = kobj.vol.offset - kobj_off)
 
@@ -60,13 +56,13 @@ class Check_modules(plugins.PluginInterface):
         return ret
 
     def _generator(self):
-        vmlinux = contexts.Module(self.context, self.config['vmlinux'], self.config['primary'], 0)
+        vmlinux = self.context.modules[self.config['vmlinux']]
 
         kset_modules = self.get_kset_modules(vmlinux)
 
         lsmod_modules = set(
             str(utility.array_to_string(modules.name))
-            for modules in lsmod.Lsmod.list_modules(self.context, self.config['primary'], self.config['vmlinux']))
+            for modules in lsmod.Lsmod.list_modules(self.context, vmlinux.layer_name, vmlinux.symbol_table_name))
 
         for mod_name in set(kset_modules.keys()).difference(lsmod_modules):
             yield (0, (format_hints.Hex(kset_modules[mod_name]), str(mod_name)))
