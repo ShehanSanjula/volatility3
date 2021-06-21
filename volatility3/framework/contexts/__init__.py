@@ -148,7 +148,7 @@ def get_module_wrapper(method: str) -> Callable:
 
     def wrapper(self, name: str) -> Callable:
         if constants.BANG not in name:
-            name = self._module_name + constants.BANG + name
+            name = self.symbol_table_name + constants.BANG + name
         else:
             raise ValueError(f"Cannot reference another module when calling {method}")
         return getattr(self._context.symbol_space, method)(name)

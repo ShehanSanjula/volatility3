@@ -434,17 +434,16 @@ class PluginRequirement(VersionRequirement):
 class ModuleRequirement(interfaces.configuration.ConstructableRequirementInterface,
                         interfaces.configuration.ConfigurableRequirementInterface):
 
-    def __init__(self, name: str, description: str = None, default: bool = False, optional: bool = False):
+    def __init__(self, name: str, description: str = None, default: bool = False,
+                 architectures: Optional[List[str]] = None, optional: bool = False):
         super().__init__(name = name, description = description, default = default, optional = optional)
-        for req in self.get_requirements():
-            self.add_requirement(req)
+        self.add_requirement(TranslationLayerRequirement(name = 'layer_name', architectures = architectures))
+        self.add_requirement(SymbolTableRequirement(name = 'symbol_table_name'))
 
     @classmethod
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
         return [
-            TranslationLayerRequirement(name = 'layer_name', architectures = ["Intel32", "Intel64"]),
             IntRequirement(name = 'offset'),
-            SymbolTableRequirement(name = 'symbol_table_name')
         ]
 
     def unsatisfied(self, context: 'interfaces.context.ContextInterface',
