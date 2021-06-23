@@ -164,7 +164,7 @@ class ModuleInterface(metaclass = ABCMeta):
         self._layer_name = layer_name
         self._offset = offset
         self._native_layer_name = native_layer_name or layer_name
-        self.symbol_table_name = symbol_table_name or self._module_name
+        self._symbol_table_name = symbol_table_name or self._module_name
 
     @property
     def name(self) -> str:
@@ -186,6 +186,11 @@ class ModuleInterface(metaclass = ABCMeta):
     def context(self) -> ContextInterface:
         """Context that the module uses."""
         return self._context
+
+    @property
+    def symbol_table_name(self) -> str:
+        """The name of the symbol table associated with this module"""
+        return self._symbol_table_name
 
     @abstractmethod
     def object(self,

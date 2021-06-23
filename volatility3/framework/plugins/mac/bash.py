@@ -20,13 +20,13 @@ from volatility3.plugins.mac import pslist
 class Bash(plugins.PluginInterface, timeliner.TimeLinerInterface):
     """Recovers bash command history from memory."""
 
-    _required_framework_version = (1, 0, 0)
+    _required_framework_version = (1, 1, 0)
 
     @classmethod
     def get_requirements(cls):
         return [
             requirements.ModuleRequirement(name = 'darwin', description = 'Kernel module for the OS'),
-            requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (2, 0, 0)),
+            requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (3, 0, 0)),
             requirements.ListRequirement(name = 'pid',
                                          description = 'Filter on specific process IDs',
                                          element_type = int,
@@ -93,8 +93,7 @@ class Bash(plugins.PluginInterface, timeliner.TimeLinerInterface):
                                    ("Command", str)],
                                   self._generator(
                                       list_tasks(self.context,
-                                                 self.config['darwin.layer_name'],
-                                                 self.config['darwin.symbol_table_name'],
+                                                 self.config['darwin'],
                                                  filter_func = filter_func)))
 
     def generate_timeline(self):
@@ -103,8 +102,7 @@ class Bash(plugins.PluginInterface, timeliner.TimeLinerInterface):
 
         for row in self._generator(
                 list_tasks(self.context,
-                           self.config['darwin.layer_name'],
-                           self.config['darwin.symbol_table_name'],
+                           self.config['darwin'],
                            filter_func = filter_func)):
             _depth, row_data = row
             description = f"{row_data[0]} ({row_data[1]}): \"{row_data[3]}\""
