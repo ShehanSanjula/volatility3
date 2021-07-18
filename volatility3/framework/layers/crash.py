@@ -85,18 +85,18 @@ class WindowsCrashDump32Layer(segmented.SegmentedLayer):
         return self.context.object(self._crash_common_table_name + constants.BANG + "_SUMMARY_DUMP",
                                    offset = 0x1000 * self.headerpages,
                                    layer_name = self._base_layer)
+
     def _load_segments(self) -> None:
         """Loads up the segments from the meta_layer."""
         segments = []
 
         if self.dump_type == 0x1:
-        header = self.context.object(self._crash_table_name + constants.BANG + self.dump_header_name,
-                                     offset = 0,
-                                     layer_name = self._base_layer)
+            header = self.context.object(self._crash_table_name + constants.BANG + self.dump_header_name,
+                                         offset = 0,
+                                         layer_name = self._base_layer)
 
-
-        offset = self.headerpages
-        header.PhysicalMemoryBlockBuffer.Run.count = header.PhysicalMemoryBlockBuffer.NumberOfRuns
+            offset = self.headerpages
+            header.PhysicalMemoryBlockBuffer.Run.count = header.PhysicalMemoryBlockBuffer.NumberOfRuns
             for run in header.PhysicalMemoryBlockBuffer.Run:
                 segments.append(
                     (run.BasePage * 0x1000, offset * 0x1000, run.PageCount * 0x1000, run.PageCount * 0x1000))
@@ -191,7 +191,6 @@ class WindowsCrashDump64Layer(WindowsCrashDump32Layer):
     dump_header_name = '_DUMP_HEADER64'
     supported_dumptypes = [0x1, 0x05]
     headerpages = 2
-
 
 
 class WindowsCrashDumpStacker(interfaces.automagic.StackerLayerInterface):
