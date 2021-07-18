@@ -14,7 +14,7 @@ offset.
 import collections
 import copy
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Union, Dict, List
+from typing import Optional, Union, Dict, List, Iterable
 
 from volatility3.framework import interfaces, exceptions
 
@@ -253,6 +253,13 @@ class ModuleInterface(metaclass = ABCMeta):
     def has_enumeration(self, name: str) -> bool:
         """Determines whether an enumeration is present in the module's symbol table."""
 
+    def symbols(self) -> List:
+        """Lists the symbols contained in the symbol table for this module"""
+
+    def get_symbols_by_absolute_location(self, offset: int, size: int = 0) -> List[str]:
+        """Returns the symbols within table_name (or this module if not specified) that live at the specified
+        absolute offset provided."""
+
 
 class ModuleContainer(collections.abc.Mapping):
     """Container for multiple layers of data."""
@@ -291,3 +298,10 @@ class ModuleContainer(collections.abc.Mapping):
 
     def __iter__(self):
         return iter(self._modules)
+
+    def get_modules_by_symbol_tables(self, symbol_table: str) -> Iterable[str]:
+        """Returns the modules which use the specified symbol table name"""
+        for module_name in self._modules:
+            module = self._modules[module_name]
+            if module.symbol_table_name == symbol_table:
+                yield module_name

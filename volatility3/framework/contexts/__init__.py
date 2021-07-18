@@ -149,6 +149,8 @@ def get_module_wrapper(method: str) -> Callable:
     def wrapper(self, name: str) -> Callable:
         if constants.BANG not in name:
             name = self.symbol_table_name + constants.BANG + name
+        elif name.startswith(self.symbol_table_name + constants.BANG):
+            pass
         else:
             raise ValueError(f"Cannot reference another module when calling {method}")
         return getattr(self._context.symbol_space, method)(name)
@@ -240,6 +242,20 @@ class Module(interfaces.context.ModuleInterface):
                                     native_layer_name = native_layer_name or self._native_layer_name,
                                     **kwargs)
 
+    def get_symbols_by_absolute_location(self, offset: int, size: int = 0) -> List[str]:
+        """Returns the symbols within this module that live at the specified
+        absolute offset provided."""
+        if size < 0:
+            raise ValueError("Size must be strictly non-negative")
+        return list(
+            self._context.symbol_space.get_symbols_by_location(offset = offset - self._offset,
+                                                               size = size,
+                                                               table_name = self.symbol_table_name))
+
+    @property
+    def symbols(self):
+        return self.context.symbol_space[self.symbol_table_name].symbols
+
     get_symbol = get_module_wrapper('get_symbol')
     get_type = get_module_wrapper('get_type')
     get_enumeration = get_module_wrapper('get_enumeration')
@@ -289,14 +305,9 @@ class SizedModule(Module):
     def get_symbols_by_absolute_location(self, offset: int, size: int = 0) -> List[str]:
         """Returns the symbols within this module that live at the specified
         absolute offset provided."""
-        if size < 0:
-            raise ValueError("Size must be strictly non-negative")
         if offset > self._offset + self.size:
             return []
-        return list(
-            self._context.symbol_space.get_symbols_by_location(offset = offset - self._offset,
-                                                               size = size,
-                                                               table_name = self.symbol_table_name))
+        return super().get_symbols_by_absolute_location(offset, size)
 
 
 class ModuleCollection(interfaces.context.ModuleContainer):

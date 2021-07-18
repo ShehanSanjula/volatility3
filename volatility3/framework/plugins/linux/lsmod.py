@@ -7,7 +7,6 @@ found in Linux's /proc file system."""
 import logging
 from typing import List, Iterable
 
-from volatility3.framework import contexts
 from volatility3.framework import exceptions, renderers, constants, interfaces
 from volatility3.framework.configuration import requirements
 from volatility3.framework.interfaces import plugins
@@ -21,7 +20,7 @@ class Lsmod(plugins.PluginInterface):
     """Lists loaded kernel modules."""
 
     _required_framework_version = (1, 1, 0)
-    _version = (1, 0, 0)
+    _version = (2, 0, 0)
 
     @classmethod
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
@@ -30,8 +29,8 @@ class Lsmod(plugins.PluginInterface):
         ]
 
     @classmethod
-    def list_modules(cls, context: interfaces.context.ContextInterface, layer_name: str,
-                     vmlinux_symbols: str) -> Iterable[interfaces.objects.ObjectInterface]:
+    def list_modules(cls, context: interfaces.context.ContextInterface, vmlinux_module_name: str) -> Iterable[
+        interfaces.objects.ObjectInterface]:
         """Lists all the modules in the primary layer.
 
         Args:
@@ -44,7 +43,7 @@ class Lsmod(plugins.PluginInterface):
 
         This function will throw a SymbolError exception if kernel module support is not enabled.
         """
-        vmlinux = contexts.Module(context, vmlinux_symbols, layer_name, 0)
+        vmlinux = context.modules[vmlinux_module_name]
 
         modules = vmlinux.object_from_symbol(symbol_name = "modules").cast("list_head")
 
@@ -55,8 +54,7 @@ class Lsmod(plugins.PluginInterface):
 
     def _generator(self):
         try:
-            for module in self.list_modules(self.context, self.config['vmlinux.layer_name'],
-                                            self.config['vmlinux.symbol_table_name']):
+            for module in self.list_modules(self.context, self.config['vmlinux']):
 
                 mod_size = module.get_init_size() + module.get_core_size()
 

@@ -23,17 +23,16 @@ class Check_idt(interfaces.plugins.PluginInterface):
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
         return [
             requirements.ModuleRequirement(name = 'vmlinux', architectures = ["Intel32", "Intel64"]),
-            requirements.VersionRequirement(name = 'linuxutils', component = linux.LinuxUtilities, version = (1, 0, 0)),
-            requirements.PluginRequirement(name = 'lsmod', plugin = lsmod.Lsmod, version = (1, 0, 0))
+            requirements.VersionRequirement(name = 'linuxutils', component = linux.LinuxUtilities, version = (2, 0, 0)),
+            requirements.PluginRequirement(name = 'lsmod', plugin = lsmod.Lsmod, version = (2, 0, 0))
         ]
 
     def _generator(self):
         vmlinux = self.context.modules[self.config['vmlinux']]
 
-        modules = lsmod.Lsmod.list_modules(self.context, vmlinux.layer_name, vmlinux.symbol_table_name)
+        modules = lsmod.Lsmod.list_modules(self.context, vmlinux.name)
 
-        handlers = linux.LinuxUtilities.generate_kernel_handler_info(self.context, vmlinux.layer_name,
-                                                                     vmlinux.symbol_table_name, modules)
+        handlers = linux.LinuxUtilities.generate_kernel_handler_info(self.context, vmlinux.name, modules)
 
         is_32bit = not symbols.symbol_table_is_64bit(self.context, vmlinux.symbol_table_name)
 
@@ -62,7 +61,8 @@ class Check_idt(interfaces.plugins.PluginInterface):
         table = vmlinux.object(object_type = 'array',
                                offset = addrs.vol.offset,
                                subtype = vmlinux.get_type(idt_type),
-                               count = idt_table_size)
+                               count = idt_table_size,
+                               absolute = True)
 
         for i in check_idxs:
             ent = table[i]
@@ -85,7 +85,7 @@ class Check_idt(interfaces.plugins.PluginInterface):
 
                 idt_addr = idt_addr & address_mask
 
-            module_name, symbol_name = linux.LinuxUtilities.lookup_module_address(self.context, handlers, idt_addr)
+            module_name, symbol_name = linux.LinuxUtilities.lookup_module_address(vmlinux, handlers, idt_addr)
 
             yield (0, [format_hints.Hex(i), format_hints.Hex(idt_addr), module_name, symbol_name])
 

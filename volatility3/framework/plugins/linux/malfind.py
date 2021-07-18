@@ -21,7 +21,7 @@ class Malfind(interfaces.plugins.PluginInterface):
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
         return [
             requirements.ModuleRequirement(name = 'vmlinux', architectures = ["Intel32", "Intel64"]),
-            requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (1, 0, 0)),
+            requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (2, 0, 0)),
             requirements.ListRequirement(name = 'pid',
                                          description = 'Filter on specific process IDs',
                                          element_type = int,
@@ -73,6 +73,5 @@ class Malfind(interfaces.plugins.PluginInterface):
                                    ("Disasm", interfaces.renderers.Disassembly)],
                                   self._generator(
                                       pslist.PsList.list_tasks(self.context,
-                                                               self.config['vmlinux.layer_name'],
-                                                               self.config['vmlinux.symbol_table_name'],
+                                                               self.config['vmlinux'],
                                                                filter_func = filter_func)))

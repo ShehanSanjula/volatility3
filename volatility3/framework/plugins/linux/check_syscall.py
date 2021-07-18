@@ -37,9 +37,14 @@ class Check_syscall(plugins.PluginInterface):
         """Returns the size of the table based on the next symbol."""
         ret = 0
 
-        sym_table = self.context.symbol_space[vmlinux.symbol_table_name]
-
-        sorted_symbols = sorted([(sym_table.get_symbol(sn).address, sn) for sn in sym_table.symbols])
+        symbol_list = []
+        for sn in vmlinux.symbols:
+            try:
+                # When requesting the symbol from the module, a full resolve is performed
+                symbol_list.append((vmlinux.get_symbol(sn).address, sn))
+            except exceptions.SymbolError:
+                pass
+        sorted_symbols = sorted(symbol_list)
 
         sym_address = 0
 
@@ -91,8 +96,7 @@ class Check_syscall(plugins.PluginInterface):
         md = capstone.Cs(capstone.CS_ARCH_X86, mode)
 
         try:
-            func_addr = self.context.symbol_space.get_symbol(
-                vmlinux.symbol_table_name + constants.BANG + syscall_entry_func).address
+            func_addr = vmlinux.get_symbol(syscall_entry_func).address
         except exceptions.SymbolError as e:
             # if we can't find the disassemble function then bail and rely on a different method
             return 0
@@ -107,7 +111,7 @@ class Check_syscall(plugins.PluginInterface):
         return table_size
 
     def _get_table_info(self, vmlinux, table_name, ptr_sz):
-        table_sym = self.context.symbol_space.get_symbol(vmlinux.symbol_table_name + constants.BANG + table_name)
+        table_sym = vmlinux.get_symbol(table_name)
 
         table_size = self._get_table_info_disassembly(ptr_sz, vmlinux)
 
@@ -142,8 +146,7 @@ class Check_syscall(plugins.PluginInterface):
         # enabled in order to support 32 bit programs and libraries
         # if the symbol isn't there then the support isn't in the kernel and so we skip it
         try:
-            ia32_symbol = self.context.symbol_space.get_symbol(
-                vmlinux.symbol_table_name + constants.BANG + "ia32_sys_call_table")
+            ia32_symbol = vmlinux.get_symbol("ia32_sys_call_table")
         except exceptions.SymbolError:
             ia32_symbol = None
 
@@ -161,7 +164,7 @@ class Check_syscall(plugins.PluginInterface):
                 if not call_addr:
                     continue
 
-                symbols = list(self.context.symbol_space.get_symbols_by_location(call_addr))
+                symbols = list(vmlinux.get_symbols_by_absolute_location(call_addr))
 
                 if len(symbols) > 0:
                     sym_name = str(symbols[0].split(constants.BANG)[1]) if constants.BANG in symbols[0] else \

@@ -24,10 +24,13 @@ class Check_modules(plugins.PluginInterface):
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
         return [
             requirements.ModuleRequirement(name = 'vmlinux', architectures = ["Intel32", "Intel64"]),
-            requirements.PluginRequirement(name = 'lsmod', plugin = lsmod.Lsmod, version = (1, 0, 0))
+            requirements.PluginRequirement(name = 'lsmod', plugin = lsmod.Lsmod, version = (2, 0, 0))
         ]
 
-    def get_kset_modules(self, vmlinux):
+    @classmethod
+    def get_kset_modules(self, context: interfaces.context.ContextInterface, vmlinux_name: str):
+
+        vmlinux = context.modules[vmlinux_name]
 
         try:
             module_kset = vmlinux.object_from_symbol("module_kset")
@@ -45,7 +48,8 @@ class Check_modules(plugins.PluginInterface):
 
         for kobj in module_kset.list.to_list(vmlinux.symbol_table_name + constants.BANG + "kobject", "entry"):
 
-            mod_kobj = vmlinux.object(object_type = "module_kobject", offset = kobj.vol.offset - kobj_off)
+            mod_kobj = vmlinux.object(object_type = "module_kobject", offset = kobj.vol.offset - kobj_off,
+                                      absolute = True)
 
             mod = mod_kobj.mod
 
@@ -56,13 +60,11 @@ class Check_modules(plugins.PluginInterface):
         return ret
 
     def _generator(self):
-        vmlinux = self.context.modules[self.config['vmlinux']]
-
-        kset_modules = self.get_kset_modules(vmlinux)
+        kset_modules = self.get_kset_modules(self.context, self.config['vmlinux'])
 
         lsmod_modules = set(
             str(utility.array_to_string(modules.name))
-            for modules in lsmod.Lsmod.list_modules(self.context, vmlinux.layer_name, vmlinux.symbol_table_name))
+            for modules in lsmod.Lsmod.list_modules(self.context, self.config['vmlinux']))
 
         for mod_name in set(kset_modules.keys()).difference(lsmod_modules):
             yield (0, (format_hints.Hex(kset_modules[mod_name]), str(mod_name)))

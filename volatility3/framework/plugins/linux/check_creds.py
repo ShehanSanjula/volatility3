@@ -20,7 +20,7 @@ class Check_creds(interfaces.plugins.PluginInterface):
     def get_requirements(cls):
         return [
             requirements.ModuleRequirement(name = 'vmlinux', architectures = ["Intel32", "Intel64"]),
-            requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (1, 0, 0))
+            requirements.PluginRequirement(name = 'pslist', plugin = pslist.PsList, version = (2, 0, 0))
         ]
 
     def _generator(self):
@@ -37,7 +37,7 @@ class Check_creds(interfaces.plugins.PluginInterface):
 
         creds = {}
 
-        tasks = pslist.PsList.list_tasks(self.context, vmlinux.layer_name, vmlinux.symbol_table_name)
+        tasks = pslist.PsList.list_tasks(self.context, vmlinux.name)
 
         for task in tasks:
 

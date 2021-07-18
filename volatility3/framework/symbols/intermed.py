@@ -101,6 +101,11 @@ class IntermediateSymbolTable(interfaces.symbols.SymbolTableInterface):
             symbol_shift: An offset by which to alter all returned symbols for this table
             symbol_mask: An address mask used for all returned symbol offsets from this table (a mask of 0 disables masking)
         """
+        if symbol_shift is not None and symbol_shift != 0:
+            raise TypeError("Symbol shift should not be set")
+            raise DeprecationWarning(
+                "Setting the symbol_shift parameter has been deprecated in favour of using Modules")
+
         # Check there are no obvious errors
         # Open the file and test the version
         self._versions = dict([(x.version, x) for x in class_subclasses(ISFormatTable)])

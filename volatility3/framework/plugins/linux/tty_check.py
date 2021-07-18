@@ -25,17 +25,16 @@ class tty_check(plugins.PluginInterface):
     def get_requirements(cls) -> List[interfaces.configuration.RequirementInterface]:
         return [
             requirements.ModuleRequirement(name = 'vmlinux', architectures = ["Intel32", "Intel64"]),
-            requirements.PluginRequirement(name = 'lsmod', plugin = lsmod.Lsmod, version = (1, 0, 0)),
-            requirements.VersionRequirement(name = 'linuxutils', component = linux.LinuxUtilities, version = (1, 0, 0))
+            requirements.PluginRequirement(name = 'lsmod', plugin = lsmod.Lsmod, version = (2, 0, 0)),
+            requirements.VersionRequirement(name = 'linuxutils', component = linux.LinuxUtilities, version = (2, 0, 0))
         ]
 
     def _generator(self):
         vmlinux = self.context.modules[self.config['vmlinux']]
 
-        modules = lsmod.Lsmod.list_modules(self.context, vmlinux.layer_name, vmlinux.symbol_table_name)
+        modules = lsmod.Lsmod.list_modules(self.context, vmlinux.name)
 
-        handlers = linux.LinuxUtilities.generate_kernel_handler_info(self.context, vmlinux.layer_name,
-                                                                     vmlinux.symbol_table_name, modules)
+        handlers = linux.LinuxUtilities.generate_kernel_handler_info(self.context, vmlinux.name, modules)
 
         try:
             tty_drivers = vmlinux.object_from_symbol("tty_drivers").cast("list_head")
@@ -68,7 +67,7 @@ class tty_check(plugins.PluginInterface):
 
                 recv_buf = tty_dev.ldisc.ops.receive_buf
 
-                module_name, symbol_name = linux.LinuxUtilities.lookup_module_address(self.context, handlers, recv_buf)
+                module_name, symbol_name = linux.LinuxUtilities.lookup_module_address(vmlinux, handlers, recv_buf)
 
                 yield (0, (name, format_hints.Hex(recv_buf), module_name, symbol_name))
 
