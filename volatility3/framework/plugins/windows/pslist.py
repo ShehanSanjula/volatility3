@@ -80,7 +80,8 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
         return file_handle
 
     @classmethod
-    def create_pid_filter(cls, pid_list: List[int] = None, exclude: bool = False) -> Callable[[interfaces.objects.ObjectInterface], bool]:
+    def create_pid_filter(cls, pid_list: List[int] = None, exclude: bool = False) -> Callable[
+        [interfaces.objects.ObjectInterface], bool]:
         """A factory for producing filter functions that filter based on a list
         of process IDs.
 
@@ -99,11 +100,12 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
             if exclude:
                 filter_func = lambda x: x.UniqueProcessId in filter_list
             else:
-            filter_func = lambda x: x.UniqueProcessId not in filter_list
+                filter_func = lambda x: x.UniqueProcessId not in filter_list
         return filter_func
 
     @classmethod
-    def create_name_filter(cls, name_list: List[str] = None, exclude: bool = False) -> Callable[[interfaces.objects.ObjectInterface], bool]:
+    def create_name_filter(cls, name_list: List[str] = None, exclude: bool = False) -> Callable[
+        [interfaces.objects.ObjectInterface], bool]:
         """A factory for producing filter functions that filter based on a list
         of process names.
 
@@ -122,7 +124,7 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
             if exclude:
                 filter_func = lambda x: utility.array_to_string(x.ImageFileName) in filter_list
             else:
-            filter_func = lambda x: utility.array_to_string(x.ImageFileName) not in filter_list
+                filter_func = lambda x: utility.array_to_string(x.ImageFileName) not in filter_list
         return filter_func
 
     @classmethod
@@ -210,7 +212,7 @@ class PsList(interfaces.plugins.PluginInterface, timeliner.TimeLinerInterface):
                            proc.get_exit_time(), file_output))
 
             except exceptions.InvalidAddressException:
-                vollog.info(f"Invalid process found at address: {proc.vol.offset:x}. Skipping")  
+                vollog.info(f"Invalid process found at address: {proc.vol.offset:x}. Skipping")
 
     def generate_timeline(self):
         for row in self._generator():

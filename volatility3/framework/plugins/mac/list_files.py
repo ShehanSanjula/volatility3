@@ -18,7 +18,7 @@ vollog = logging.getLogger(__name__)
 class List_Files(plugins.PluginInterface):
     """Lists all open file descriptors for all processes."""
 
-    _required_framework_version = (1, 1, 0)
+    _required_framework_version = (1, 2, 0)
 
     @classmethod
     def get_requirements(cls):
